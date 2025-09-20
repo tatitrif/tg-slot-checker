@@ -1,0 +1,9 @@
+# Конфигурация шагов выполнения
+steps:
+  - type: command
+    value: "/start"
+    description: "Запуск бота"
+
+  - type: click
+    search_text: "шаг1"
+    description: "Выбор шаг 1"

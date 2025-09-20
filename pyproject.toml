@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "tg-slot-checker"
+version = "0.1.0"
+description = "Async Telegram slot monitor"
+authors = ["Tati Trif <tatitrif@mail.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+telethon = "^1.41.0"
+pydantic-settings = "^2.10.1"
+pyyaml = "^6.0.2"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
