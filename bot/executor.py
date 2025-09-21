@@ -3,40 +3,45 @@
 import asyncio
 import logging
 from collections.abc import Callable
+from collections.abc import Awaitable
 
 logger = logging.getLogger(__name__)
 
 
-class StepExecutor:
-    """Выполняет шаги сценария."""
+async def execute_steps(
+    steps: list[tuple[Callable[[], Awaitable[bool]], str | None]],
+    step_delay: int,  # задержка между шагами
+    max_attempts: int,  # число попыток пройти сценарий полностью
+    restart_delay: int,  # задержка перед перезапуском сценария
+) -> bool:
+    """Запускает сценарий пошагово, с возможностью повторного запуска всего процесса."""
+    for attempt in range(1, max_attempts + 1):
+        logger.info("=== Запуск сценария (попытка %d/%d) ===", attempt, max_attempts)
+        scenario_failed = False
 
-    def __init__(self, client, target_entity, booking_data: dict[str, str]):
-        """
-        Инициализирует исполнитель шагов.
+        for step_index, (step_func, _expected_data) in enumerate(steps, start=1):
+            try:
+                success = await step_func()
+            except Exception as e:
+                logger.warning("Шаг %d: исключение: %s", step_index, e)
+                success = False
 
-        Args:
-            client: Клиент Telegram
-            target_entity: Целевой entity (бот)
-            booking_data: Словарь для хранения данных бронирования
-        """
-        self.client = client
-        self.target = target_entity
-        self.booking_data = booking_data
+            if success:
+                logger.info("Шаг %d выполнен успешно", step_index)
+                await asyncio.sleep(step_delay)
+                continue
 
-    async def execute_steps(
-        self, steps: list[tuple[Callable, str | None]], step_delay: int
-    ) -> bool:
-        """Последовательно выполняет шаги."""
-        for step_func, expected_data in steps:
-            success = await step_func()
-            if not success:
-                return False
+            logger.error("Шаг %d провален. Сценарий будет перезапущен.", step_index)
+            scenario_failed = True
+            break  # прерываем текущий сценарий
 
-            if expected_data and expected_data in self.booking_data:
-                logger.debug(
-                    "Сохранили %s: %s", expected_data, self.booking_data[expected_data]
-                )
+        if not scenario_failed:
+            logger.info("Сценарий успешно завершён на попытке %d", attempt)
+            return True
 
-            await asyncio.sleep(step_delay)
+        if attempt < max_attempts:
+            logger.info("Ждём %d секунд перед перезапуском сценария", restart_delay)
+            await asyncio.sleep(restart_delay)
 
-        return True
+    logger.error("Сценарий не был выполнен успешно после %d попыток", max_attempts)
+    return False

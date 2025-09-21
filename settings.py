@@ -21,8 +21,13 @@ class Settings(BaseSettings):
     phone_number: str = Field(..., description="Номер телефона аккаунта Telegram")
     tg_password: str = Field(..., description="Пароль двухфакторной аутентификации")
     target_bot: str = Field(..., description="Username целевого бота для мониторинга")
-    step_delay: int = Field(2, description="Задержка между шагами в секундах")
-    search_attempts: int = Field(3, description="")
+    step_delay: int | None = Field(1, description="Задержка между шагами в секундах")
+    max_attempts: int | None = Field(
+        1, description="Максимальное число попыток пройти сценарий"
+    )
+    restart_delay: int | None = Field(
+        20 * 60, description="Задержка перед перезапуском сценария"
+    )
 
     @field_validator("phone_number")
     @classmethod
