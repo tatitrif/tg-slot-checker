@@ -41,7 +41,7 @@ class CheckerSlotBot:
 
         # Выполнение шагов
         success = await execute_steps(
-            steps, settings.step_delay, settings.max_attempts, settings.restart_delay
+            steps,
         )
 
         if success:

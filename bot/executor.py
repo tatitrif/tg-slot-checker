@@ -5,14 +5,16 @@ import logging
 from collections.abc import Callable
 from collections.abc import Awaitable
 
+from settings import settings
+
 logger = logging.getLogger(__name__)
 
 
 async def execute_steps(
     steps: list[tuple[Callable[[], Awaitable[bool]], str | None]],
-    step_delay: int,  # задержка между шагами
-    max_attempts: int,  # число попыток пройти сценарий полностью
-    restart_delay: int,  # задержка перед перезапуском сценария
+    step_delay: int = settings.step_delay,
+    max_attempts: int = settings.max_attempts,
+    restart_delay: int = settings.restart_delay,
 ) -> bool:
     """Запускает сценарий пошагово, с возможностью повторного запуска всего процесса."""
     for attempt in range(1, max_attempts + 1):
