@@ -2,17 +2,28 @@
 
 import asyncio
 import logging
+from asyncio import exceptions
+
 from bot.checker import CheckerSlotBot
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    level=logging.INFO,
+    format="[%(asctime)s] - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",
 )
 
+logger = logging.getLogger(__name__)
 
-async def main():
-    """Точка входа: запускает CheckerSlotBot."""
-    bot = CheckerSlotBot()
-    await bot.start()
+
+async def main() -> None:
+    """Главная функция запуска."""
+    try:
+        bot = CheckerSlotBot()
+        success = await bot.start()
+        logger.info("Программа завершена %s", "успешно" if success else "с ошибками")
+    except exceptions.CancelledError:
+        logger.info("Программа прервана пользователем")
+    except Exception as e:
+        logger.error("Непредвиденная ошибка: %s", e)
 
 
 if __name__ == "__main__":

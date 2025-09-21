@@ -1,7 +1,6 @@
 """Фабрика для создания шагов сценария из конфигурации."""
 
 import logging
-import asyncio
 from collections.abc import Callable, Awaitable
 
 from telethon import errors
@@ -107,7 +106,6 @@ class StepFactory:
 
                                 logger.info("Нажимаем кнопку: %s", button_text)
                                 await message.click(row_index, button_index)
-                                await asyncio.sleep(1)
                                 return True
 
                 logger.warning("Кнопка для '%s' не найдена", search_text or slot_type)
