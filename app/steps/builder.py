@@ -5,7 +5,7 @@ from collections.abc import Callable, Awaitable
 
 from telethon import errors
 
-from bot.schemas import StepSchema, CommandStep, ClickStep
+from .schemas import StepSchema, CommandStep, ClickStep
 
 
 logger = logging.getLogger(__name__)

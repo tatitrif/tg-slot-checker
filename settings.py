@@ -1,11 +1,7 @@
 """Модуль для работы с настройками приложения и конфигурацией шагов."""
 
-import yaml
 from pydantic import Field, field_validator
-from pydantic import TypeAdapter
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from bot.schemas import StepSchema
 
 
 class Settings(BaseSettings):
@@ -47,15 +43,6 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
-
-
-def load_steps(path: str) -> list[StepSchema]:
-    """Загружает шаги из YAML файла."""
-    with open(path, encoding="utf-8") as f:
-        raw = yaml.safe_load(f)
-    steps_data = raw.get("steps", [])
-    adapter = TypeAdapter(list[StepSchema])
-    return adapter.validate_python(steps_data)
 
 
 settings = Settings()

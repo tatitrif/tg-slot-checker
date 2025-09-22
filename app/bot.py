@@ -4,10 +4,11 @@ import logging
 
 from telethon import TelegramClient
 
-from settings import settings, load_steps
-from .executor import execute_steps
-from .factory import StepFactory
+from settings import settings
 from .notifier import TelegramNotifier
+from .steps.builder import StepFactory
+from .steps.executor import execute_steps
+from .steps.loader import load_steps
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class CheckerSlotBot:
         self.target_bot = settings.target_bot
         self.booking_data: dict[str, str] = {}
 
-    async def start(self):
+    async def start(self) -> bool:
         """Запуск клиента и выполнение сценария."""
         await self.client.start(
             phone=settings.phone_number, password=settings.tg_password

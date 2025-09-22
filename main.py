@@ -4,7 +4,7 @@ import asyncio
 import logging
 from asyncio import exceptions
 
-from bot.checker import CheckerSlotBot
+from app.bot import CheckerSlotBot
 
 logging.basicConfig(
     level=logging.INFO,
