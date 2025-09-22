@@ -2,7 +2,10 @@
 
 import yaml
 from pydantic import Field, field_validator
+from pydantic import TypeAdapter
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from bot.schemas import StepSchema
 
 
 class Settings(BaseSettings):
@@ -29,6 +32,8 @@ class Settings(BaseSettings):
         20 * 60, description="Задержка перед перезапуском сценария"
     )
 
+    steps_file: str = Field("steps.yaml", description="Путь к файлу с шагами сценария")
+
     @field_validator("phone_number")
     @classmethod
     def validate_phone_number(cls, v: str) -> str:
@@ -44,20 +49,13 @@ class Settings(BaseSettings):
     )
 
 
-def load_steps(path: str = "steps.yaml") -> list[dict]:
-    """
-    Загружает шаги из YAML файла.
-
-    Args:
-        path: Путь к YAML файлу с шагами
-
-    Returns:
-        List[Dict[str, Any]]: Список шагов из конфигурационного файла
-    """
+def load_steps(path: str) -> list[StepSchema]:
+    """Загружает шаги из YAML файла."""
     with open(path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data.get("steps", [])
+        raw = yaml.safe_load(f)
+    steps_data = raw.get("steps", [])
+    adapter = TypeAdapter(list[StepSchema])
+    return adapter.validate_python(steps_data)
 
 
 settings = Settings()
-STEPS = load_steps()

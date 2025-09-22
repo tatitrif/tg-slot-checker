@@ -4,7 +4,9 @@ import logging
 from collections.abc import Callable, Awaitable
 
 from telethon import errors
-from settings import STEPS
+
+from bot.schemas import StepSchema, CommandStep, ClickStep
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,34 +27,36 @@ class StepFactory:
         self.target = target_entity
         self.booking_data = booking_data
 
-    def create_steps(self) -> list[tuple[Callable[[], Awaitable[bool]], str | None]]:
-        """Создаёт список функций шагов из YAML-конфигурации."""
-        steps = []
+    def create_steps(
+        self, steps: list[StepSchema]
+    ) -> list[tuple[Callable[[], Awaitable[bool]], str | None]]:
+        """
+        Преобразует список Pydantic-моделей шагов в исполняемые асинхронные функции.
 
-        for step_config in STEPS:
-            step_type = step_config["type"]
-            expected_data = step_config.get("expected_data")
-            description = step_config.get("description", "")
+        Args:
+            steps (list[StepSchema]): Список шагов, загруженных и валидированных через Pydantic.
 
-            match step_type:
-                case "command":
-                    step_func = self._create_command_step(
-                        step_config["value"], description
-                    )
-                case "click":
-                    step_func = self._create_click_step(
-                        search_text=step_config.get("search_text"),
-                        slot_type=step_config.get("slot_type"),
-                        description=description,
-                        expected_data=expected_data,
-                    )
-                case _:
-                    logger.warning("Неизвестный тип шага: %s", step_type)
-                    continue
+        Returns:
+            list[tuple[Callable[[], Awaitable[bool]], str | None]]:
+                Список кортежей, где первый элемент — асинхронная функция шага,
+                второй — ключ для сохранения данных (например, 'date', 'time', 'confirmation').
+        """
+        result = []
+        for step in steps:
+            if isinstance(step, CommandStep):
+                step_func = self._create_command_step(step.value, step.description)
+                result.append((step_func, None))
 
-            steps.append((step_func, expected_data))
+            elif isinstance(step, ClickStep):
+                step_func = self._create_click_step(
+                    search_text=step.search_text,
+                    slot_type=step.slot_type,
+                    description=step.description,
+                    expected_data=step.expected_data,
+                )
+                result.append((step_func, step.expected_data))
 
-        return steps
+        return result
 
     def _create_command_step(self, command: str, description: str):
         """Создает шаг для отправки команды."""
