@@ -93,12 +93,12 @@ poetry run python main.py
 
 - type: click
   slot_type: date # Автопоиск даты
-  expected_data: date # Сохранить выбранную дату
+  expected_data: expected_data # Сохранить выбранную дату
   description: "Выбор даты"
 
 - type: click
   slot_type: time # Автопоиск времени
-  expected_data: time # Сохранить выбранное время
+  expected_data: expected_data # Сохранить выбранное время
   description: "Выбор времени"
 ```
 
@@ -140,9 +140,6 @@ pip install pre-commit==3.8.0
 
 # установить pre-commit в репозитории
 pre-commit install
-
-# добавить pre-commit в git
-git add .pre-commit-config.yaml
 
 # выполнение pre-commit без коммита
 pre-commit run --all-files

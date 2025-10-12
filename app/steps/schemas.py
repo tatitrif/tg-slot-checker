@@ -24,7 +24,8 @@ class ClickStep(Step):
     type: Literal["click"]
     search_text: str | None = None
     slot_type: Literal["date", "time"] | None = None
-    expected_data: Literal["date", "time", "confirmation"] | None = None
+    description: str | None = None
+    expected_data: Literal["expected_data"] | None = None
 
 
 StepSchema = Annotated[CommandStep | ClickStep, Field(discriminator="type")]

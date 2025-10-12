@@ -5,7 +5,7 @@ import logging
 from telethon import TelegramClient
 
 from settings import settings
-from .notifier import TelegramNotifier
+from .notifier import NotifierRegistry
 from .steps.builder import StepFactory
 from .steps.executor import execute_steps
 from .steps.loader import load_steps
@@ -46,11 +46,17 @@ class CheckerSlotBot:
         steps_executable = factory.create_steps(steps)
 
         # Executor выполняет шаги
-        success = await execute_steps(
-            steps_executable,
-        )
+        success = await execute_steps(steps_executable)
 
+        # Отправляем уведомления при успехе
         if success:
             me = await self.client.get_me()
-            notifier = TelegramNotifier(self.client, user_id=me.id)
-            await notifier.notify(self.booking_data)
+            tg_notifier = NotifierRegistry().create(
+                "telegram",
+                sender=self.client,
+                recipient=me.id,
+            )
+
+            await tg_notifier.notify(self.booking_data)
+
+        return success

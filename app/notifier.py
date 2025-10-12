@@ -1,51 +1,72 @@
-"""Модуль для отправки уведомлений о бронировании."""
+"""Модуль уведомлений с гибкой фабрикой и типизацией."""
 
 import logging
+from typing import Any, Protocol, runtime_checkable, TypeVar
+
+from telethon import TelegramClient
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["NotifierRegistry"]
 
-class BaseNotifier:
-    """Базовый интерфейс для уведомлений."""
+T = TypeVar("T", bound="Notifier")
+
+
+@runtime_checkable
+class Notifier(Protocol):
+    """Интерфейс для любых уведомителей."""
 
     async def notify(self, data: dict[str, str]) -> None:
-        """
-        Отправляет уведомление.
-
-        Args:
-            data: Данные для уведомления
-
-        Raises:
-            NotImplementedError: Метод должен быть реализован в подклассах
-        """
-        raise NotImplementedError
+        """Отправляет уведомление."""
+        ...
 
 
-class TelegramNotifier(BaseNotifier):
+class NotifierRegistry:
+    """Регистрирует уведомители и создает их экземпляры."""
+
+    _registry: dict[str, type[T]] = {}
+
+    @classmethod
+    def register(cls, name: str):
+        """Декоратор для регистрации уведомителя."""
+
+        def wrapper(notifier_cls: type[T]) -> type[T]:
+            if name in cls._registry:
+                raise ValueError(f"Notifier '{name}' уже зарегистрирован")
+            cls._registry[name] = notifier_cls
+            logger.debug("Notifier '%s' зарегистрирован", name)
+            return notifier_cls
+
+        return wrapper
+
+    @classmethod
+    def create(cls, name: str, **kwargs: Any) -> T:
+        """Создает экземпляр уведомителя по имени."""
+        try:
+            notifier_cls = cls._registry[name]
+        except KeyError as e:
+            raise ValueError(f"Неизвестный тип уведомителя: {name}") from e
+        return notifier_cls(**kwargs)
+
+
+@NotifierRegistry.register("telegram")
+class TelegramNotifier:
     """Отправляет уведомления в Telegram."""
 
-    def __init__(self, client, user_id: int):
+    def __init__(self, sender: TelegramClient, recipient: int) -> None:
         """
         Инициализирует Telegram нотификатор.
 
         Args:
-            client: Клиент Telegram
-            user_id: ID пользователя для отправки уведомлений
+            sender (TelegramClient): Клиент Telegram для отправки сообщений.
+            recipient (int): Список ID получателей.
         """
-        self.client = client
-        self.user_id = user_id
+        self._client = sender
+        self._recipient = recipient
 
     async def notify(self, data: dict[str, str]) -> None:
-        """
-        Отправляет уведомление в Telegram.
+        lines = [f"{key.capitalize()}: {value}" for key, value in data.items()]
+        message = "Запись подтверждена ✅\n\n" + "\n".join(lines)
 
-        Args:
-            data: Данные бронирования для уведомления
-        """
-        message = (
-            f"Запись подтверждена ✅\n\n"
-            f"Дата: {data.get('date')}\n"
-            f"Время: {data.get('time')}\n"
-        )
-        await self.client.send_message(self.user_id, message)
-        logger.info("Уведомление отправлено пользователю %s", self.user_id)
+        await self._client.send_message(self._recipient, message)
+        logger.info("Уведомление отправлено пользователю %s", self._recipient)

@@ -103,7 +103,7 @@ class StepFactory:
                                 button_text, search_text, slot_type
                             ):
                                 if expected_data:
-                                    self.booking_data[expected_data] = button_text
+                                    self.booking_data[description] = button_text
                                     logger.debug(
                                         "Сохранили %s: %s", expected_data, button_text
                                     )
@@ -137,8 +137,6 @@ class StepFactory:
         if slot_type == "date" and any(ch.isdigit() for ch in text):
             return True
         if slot_type == "time" and (":" in text or "-" in text):
-            return True
-        if slot_type == "confirmation" and text:
             return True
 
         return False

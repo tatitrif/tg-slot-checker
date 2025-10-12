@@ -5,5 +5,15 @@ steps:
     description: "Запуск бота"
 
   - type: click
-    search_text: "шаг1"
-    description: "Выбор шаг 1"
+    search_text: "текст"
+    description: "Выбор шага 'текст'"
+
+  - type: click
+    slot_type: date
+    expected_data: expected_data
+    description: "Выбор даты"
+
+  - type: click
+    slot_type: time
+    expected_data: expected_data
+    description: "Выбор времени"

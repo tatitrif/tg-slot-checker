@@ -2,8 +2,8 @@
 
 import asyncio
 import logging
-from collections.abc import Callable
 from collections.abc import Awaitable
+from collections.abc import Callable
 
 from settings import settings
 
@@ -18,7 +18,7 @@ async def execute_steps(
 ) -> bool:
     """Запускает сценарий пошагово, с возможностью повторного запуска всего процесса."""
     for attempt in range(1, max_attempts + 1):
-        logger.info("=== Запуск сценария (попытка %d/%d) ===", attempt, max_attempts)
+        logger.info("Запуск сценария (попытка %d/%d)", attempt, max_attempts)
         scenario_failed = False
 
         for step_index, (step_func, _expected_data) in enumerate(steps, start=1):
@@ -42,7 +42,9 @@ async def execute_steps(
             return True
 
         if attempt < max_attempts:
-            logger.info("Ждём %d секунд перед перезапуском сценария", restart_delay)
+            logger.info(
+                "Ждём %d минут перед перезапуском сценария", restart_delay // 60
+            )
             await asyncio.sleep(restart_delay)
 
     logger.error("Сценарий не был выполнен успешно после %d попыток", max_attempts)
